@@ -38,7 +38,7 @@ exports.$ = (context, expressApp, socketioServer) => {
 };
 
 function findHighestScorePlayables(boardState, hand, dictionary, weighter) {
-  // console.log("FINDING HIGHEST SCORE PLAYABLES");
+  console.log("MINING");
 
   const [boardStateSizeWidth, boardStateSizeHeight] = boardState.getSize();
 
@@ -494,6 +494,29 @@ function findHighestScorePlayables(boardState, hand, dictionary, weighter) {
           resultPlayScoreEntries.push([i, j, false, word]);
         })();
       }
+    }
+  }
+
+  console.log(`RESULT...`);
+
+  const resultKeysSorted = Array.from(
+    Object.keys(result).map((item) => parseInt(item))
+  ).sort((a, b) => b - a);
+
+  let count = 0;
+  for (const key of resultKeysSorted) {
+    console.log(`For ${key} point(s)`);
+    const resultPlayScoreEntries = result[key];
+    for (const item of resultPlayScoreEntries) {
+      count += 1;
+
+      const [i, j, horizontallyElseVertically, word] = item;
+
+      console.log(
+        `${count}. ${word} @ [${i},${j}] - ${
+          horizontallyElseVertically ? "HORIZONTAL" : "VERTICAL"
+        }`
+      );
     }
   }
 
