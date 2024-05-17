@@ -132,7 +132,7 @@ function findHighestScorePlayables(boardState, hand, dictionary, weighter) {
     //   break;
     // }
 
-    console.log(a, word);
+    // console.log(a, word);
 
     for (let i = 0; i < boardStateSizeWidth; i++) {
       for (let j = 0; j < boardStateSizeHeight; j++) {
