@@ -10,7 +10,7 @@ exports.$ = (context, expressApp, socketioServer) => {
   );
 
   expressApp.post(
-    "/findPlayables",
+    "/function",
     BODY_PARSER.json({
       limit: "5mb",
     }),
@@ -22,11 +22,15 @@ exports.$ = (context, expressApp, socketioServer) => {
           requestObj.body.boardStateTransferrable
         );
 
+        const dictionaryWords = requestObj.body.dictionary.split("\n");
+
         const result = findHighestScorePlayables(
           boardState,
           requestObj.body.hand,
-          requestObj.body.dictionary,
-          requestObj.body.weighter
+          dictionaryWords,
+          requestObj.body.weighter,
+          requestObj.body.dictionaryWordsStartIndex,
+          requestObj.body.dictionaryWordsIndexingCount
         );
         responder.status(200).send(result);
       } catch (e) {
@@ -35,9 +39,58 @@ exports.$ = (context, expressApp, socketioServer) => {
       }
     }
   );
+
+  // socketioServer.of("/function").use(async (socket, next) => {
+  //   next();
+  // });
+
+  socketioServer.of("/function").on("connection", async (socket) => {
+    console.log("CONNECTED");
+
+    socket.on("disconnect", (data) => {
+      console.log("DISCONNECTED", data);
+    });
+
+    socket.on("run", (data, callback) => {
+      console.log("RESULT");
+
+      const {
+        boardStateTransferrable,
+        dictionary,
+        hand,
+        weighter,
+        dictionaryWordsStartIndex,
+        dictionaryWordsIndexingCount,
+      } = data;
+
+      const boardState = BoardState.fromTransferrable(boardStateTransferrable);
+
+      const dictionaryWords = dictionary.split("\n");
+
+      const result = findHighestScorePlayables(
+        boardState,
+        hand,
+        dictionaryWords,
+        weighter,
+        dictionaryWordsStartIndex,
+        dictionaryWordsIndexingCount
+      );
+
+      console.log(result);
+
+      callback(result);
+    });
+  });
 };
 
-function findHighestScorePlayables(boardState, hand, dictionary, weighter) {
+function findHighestScorePlayables(
+  boardState,
+  hand,
+  dictionaryWords,
+  weighter,
+  dictionaryWordsStartIndex,
+  dictionaryWordsIndexingCount
+) {
   console.log("MINING");
 
   const [boardStateSizeWidth, boardStateSizeHeight] = boardState.getSize();
@@ -125,8 +178,16 @@ function findHighestScorePlayables(boardState, hand, dictionary, weighter) {
 
   const result = new Map();
 
-  for (let a = 0; a < dictionary.length; a++) {
-    const word = dictionary[a];
+  for (
+    let a = dictionaryWordsStartIndex || 0;
+    a <
+      (dictionaryWordsStartIndex || 0) +
+        (dictionaryWordsIndexingCount ||
+          dictionaryWords.length - dictionaryWordsStartIndex) &&
+    a < dictionaryWords.length;
+    a++
+  ) {
+    const word = dictionaryWords[a];
 
     // if (a >= 10000) {
     //   break;
@@ -247,7 +308,7 @@ function findHighestScorePlayables(boardState, hand, dictionary, weighter) {
               ) {
                 const formedCrossWord = `${charsToTheTopOfChar.join()}${char}${charsToTheBottomOfChar.join()}`;
 
-                if (!(dictionary.indexOf(formedCrossWord) >= 0)) {
+                if (!(dictionaryWords.indexOf(formedCrossWord) >= 0)) {
                   // console.log(
                   //   `horizontally ${i},${j} - WORD[${k}] => ${char} INVALID FORMED CROSSWORD ${formedCrossWord}`
                   // );
@@ -428,7 +489,7 @@ function findHighestScorePlayables(boardState, hand, dictionary, weighter) {
               ) {
                 const formedCrossWord = `${charsToTheLeftOfChar.join()}${char}${charsToTheRightOfChar.join()}`;
 
-                if (!(dictionary.indexOf(formedCrossWord) >= 0)) {
+                if (!(dictionaryWords.indexOf(formedCrossWord) >= 0)) {
                   // console.log(
                   //   `vertically ${i},${j} - WORD[${k}] => ${char} INVALID FORMED CROSSWORD ${formedCrossWord}`
                   // );
