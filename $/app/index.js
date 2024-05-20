@@ -91,7 +91,7 @@ function findHighestScorePlayables(
   dictionaryWordsStartIndex,
   dictionaryWordsIndexingCount
 ) {
-  console.log("MINING");
+  console.log("RUNNING");
 
   const [boardStateSizeWidth, boardStateSizeHeight] = boardState.getSize();
 
@@ -193,7 +193,7 @@ function findHighestScorePlayables(
     //   break;
     // }
 
-    // console.log(a, word);
+    console.log(a, word);
 
     for (let i = 0; i < boardStateSizeWidth; i++) {
       for (let j = 0; j < boardStateSizeHeight; j++) {
